@@ -18,17 +18,25 @@ class Apixu implements WeatherProviderInterface
     /**
      * @var string
      */
-    protected $apiUrl = 'http://api.apixu.com/v1/current.json';
+    protected $apiUrl = 'http://api.apixu.com/v1/forecast.json';
 
     /**
      * @var string
      */
     protected $appId = "";
 
+    /**
+     * @var boolean
+     */
+    protected $isExtended = "";
+
     public function __construct(array $config = [])
     {
         if (isset($config['appId'])) {
             $this->appId = $config['appId'];
+        }
+        if (isset($config['extended'])) {
+            $this->isExtended = $config['extended'];
         }
     }
 
@@ -43,10 +51,10 @@ class Apixu implements WeatherProviderInterface
     {
         $params = $event->getCustomParams();
         $query = trim(implode(" ", $params));
-
         $querystringParams = [
             'q' => $query,
-            'key' => $this->appId
+            'key' => $this->appId,
+            'days' => 2
         ];
 
         return sprintf("%s?%s", $this->apiUrl, http_build_query($querystringParams));
@@ -79,18 +87,30 @@ class Apixu implements WeatherProviderInterface
         if (isset($data->location) && isset($data->location->name)) {
             return [
                 sprintf(
-                    "%s, %s, %s | %s | Temp: %dC %dF | Humidity: %s%% | Wind: %s @ %d mph %d kph | Clouds: %s",
+                    $this->getResponseFormat(),
                     $data->location->name,
                     $data->location->region,
                     $data->location->country,
                     $data->current->condition->text,
                     $data->current->temp_c,
                     $data->current->temp_f,
+                    $data->current->feeslike_c,
+                    $data->current->feeslike_f,
                     $data->current->humidity,
                     $data->current->wind_dir,
-                    $data->current->wind_mph,
                     $data->current->wind_kph,
-                    $data->current->cloud
+                    $data->current->wind_mph,
+                    $data->current->cloud,
+                    $data->forecast->forecastday[0]->day->condition->text,
+                    $data->forecast->forecastday[0]->day->mintemp_c,
+                    $data->forecast->forecastday[0]->day->maxtemp_c,
+                    $data->forecast->forecastday[0]->day->mintemp_f,
+                    $data->forecast->forecastday[0]->day->maxtemp_f,
+                    $data->forecast->forecastday[1]->day->condition->text,
+                    $data->forecast->forecastday[1]->day->mintemp_c,
+                    $data->forecast->forecastday[1]->day->maxtemp_c,
+                    $data->forecast->forecastday[1]->day->mintemp_f,
+                    $data->forecast->forecastday[1]->day->maxtemp_f
                 )
             ];
         } else {
@@ -98,6 +118,16 @@ class Apixu implements WeatherProviderInterface
         }
     }
 
+    /**
+     * Return a preformatted response string.
+     * Can be configured to return more details by setting 'extended' => true in the config.
+     * @return string
+     */
+    public function getResponseFormat()
+    {
+        return '%s, %s, %s | %s | Temp: %d°C %d°F (~%d°C ~%d°F) | Humidity: %s%% | Wind: %s @ %d kph %d mph'
+         . $this->isExtended ? ' | Clouds: %s%% | Today: %s %d°C-%d°C %d°F-%d°F | Tomorrow: %s %d°C-%d°C %d°F-%d°F' : '';
+    }
     /**
      * Return an array of lines to send back to IRC when there are no results
      *

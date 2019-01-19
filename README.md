@@ -5,7 +5,6 @@
 [![Build Status](https://scrutinizer-ci.com/g/chrismou/phergie-irc-plugin-react-weather/badges/build.png?b=master)](https://scrutinizer-ci.com/g/chrismou/phergie-irc-plugin-react-weather/build-status/master)
 [![Test Coverage](https://codeclimate.com/github/chrismou/phergie-irc-plugin-react-weather/badges/coverage.svg)](https://codeclimate.com/github/chrismou/phergie-irc-plugin-react-weather/coverage)
 [![Code Climate](https://codeclimate.com/github/chrismou/phergie-irc-plugin-react-weather/badges/gpa.svg)](https://codeclimate.com/github/chrismou/phergie-irc-plugin-react-weather)
-[![Buy me a beer](https://img.shields.io/badge/donate-PayPal-019CDE.svg)](https://www.paypal.me/chrismou)
 
 ## About
 This plugin provides a method for performing weather lookups for a specified town/city/zip code. OpenWeatherMap, the default provider, simply requires a location to search on,
@@ -65,12 +64,29 @@ new \Chrismou\Phergie\Plugin\Weather\Plugin(array(
 
 ))
 ```
+
+There is also an Apixu weather provider included. Their location finding service is pretty accurate, and they provide a free tier of service that should be suitable for most IRC bots. Locations can be zip codes, cities, or location codes such as airports.
+
+The provider has the ability to return extended weather details if 'extended' is set to true in the config.
+
+```php
+new \Chrismou\Phergie\Plugin\Weather\Plugin(array(
+	
+	'provider' => 'Chrismou\\Phergie\\Plugin\\Weather\\Provider\\Apixu',
+    'config' => [
+        'extended' => false, // optiona, example is default.
+        'appId' => getenv('PHERGIE_APIXU_KEY'),
+    ],
+))
+```
+
+
 Or if you know of any other weather services, you can write your own - feel free to fork and improve!
 
 #### Current request limits:
 * **Open Weather Map**: 4,000,000/day (max. 3000/min)
 * **Weather Underground**: 500/day (max. 10/min)
-
+* **Apixu**: 10,000/day
 ## Tests
 
 To run the unit test suite:

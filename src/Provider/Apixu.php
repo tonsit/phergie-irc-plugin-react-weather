@@ -32,9 +32,12 @@ class Apixu implements WeatherProviderInterface
 
     public function __construct(array $config = [])
     {
-        if (isset($config['appId'])) {
-            $this->appId = $config['appId'];
+        if (!isset($config['appId'])) {
+            throw new \Error('Must provide appId for Apixu provider');
         }
+
+        $this->appId = $config['appId'];
+
         if (isset($config['extended'])) {
             $this->isExtended = $config['extended'];
         }
